@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gift Cards</title>
+    <!-- Cambiamos a una librería QRCode más confiable -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --bronze: #cd7f32;
+            --silver: #c0c0c0;
+            --gold: #ffd700;
+            --platinum: #e5e4e2;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Estilos para el login */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary), var(--dark));
+        }
+        
+        .login-box {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header h2 {
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            color: #777;
+        }
+        
+        .login-options {
+            display: flex;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .login-option {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .login-option.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        /* Estilos para la aplicación principal */
+        .app-container {
+            display: none;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--dark));
+            color: white;
+            padding: 20px 0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark);
+            font-weight: bold;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            width: auto;
+            padding: 8px 15px;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .tabs {
+            display: flex;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab {
+            padding: 15px 20px;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        /* Estilos para gift cards personalizadas */
+        .gift-card-preview {
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gift-card-design {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .gift-card-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .gift-card-header {
+            padding: 15px;
+            margin: -25px -25px 20px -25px;
+            border-radius: 15px 15px 0 0;
+            color: white;
+        }
+        
+        .gift-card-code {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 15px 0;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        
+        #qrcode {
+            display: inline-block;
+            margin: 10px auto;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+        }
+        
+        .gift-card-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .detail-item {
+            text-align: left;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: white;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-weight: bold;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            width: auto;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-bronze {
+            background-color: var(--bronze);
+            color: white;
+        }
+        
+        .badge-silver {
+            background-color: var(--silver);
+            color: white;
+        }
+        
+        .badge-gold {
+            background-color: var(--gold);
+            color: black;
+        }
+        
+        .badge-platinum {
+            background-color: var(--platinum);
+            color: black;
+        }
+        
+        .preview-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .preview-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+        }
+        
+        .gift-card-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .gift-card-item {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            background-color: white;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .gift-card-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gift-card-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .gift-card-item-code {
+            font-weight: bold;
+            color: var(--dark);
+        }
+        
+        .gift-card-item-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--secondary);
+            margin: 10px 0;
+        }
+        
+        .gift-card-item-details {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .search-box {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-box input {
+            flex: 1;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #777;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        
+        .status-active {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+        
+        .status-used {
+            color: var(--danger);
+            font-weight: 600;
+        }
+        
+        .status-expired {
+            color: var(--warning);
+            font-weight: 600;
+        }
+        
+        .design-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .design-option.active {
+            border-color: var(--primary);
+            background-color: #f0f8ff;
+        }
+        
+        .design-preview {
+            width: 100px;
+            height: 60px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .design-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .admin-only {
+            display: none;
+        }
+        
+        .user-role-admin .admin-only {
+            display: block;
+        }
+        
+        .user-role-admin .user-only {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sistema de Login -->
+    <div class="login-container" id="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <h2>Sistema de Gift Cards</h2>
+                <p>Inicia sesión para continuar</p>
+            </div>
+            
+            <div class="login-options">
+                <div class="login-option active" data-role="user">Usuario</div>
+                <div class="login-option" data-role="admin">Administrador</div>
+            </div>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" placeholder="Ingresa tu usuario" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" placeholder="Ingresa tu contraseña" required>
+                </div>
+                
+                <button type="submit" class="btn-secondary">Iniciar Sesión</button>
+            </form>
+            
+            <div style="margin-top: 20px; text-align: center; font-size: 14px; color: #777;">
+                <p><strong>Credenciales de prueba:</strong></p>
+                <p>Usuario: user / admin</p>
+                <p>Contraseña: 1234</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Aplicación Principal -->
+    <div class="app-container" id="app-container">
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <div class="logo">Sistema de Gift Cards</div>
+                    <div class="user-info">
+                        <div class="avatar" id="user-avatar">U</div>
+                        <span id="user-name">Usuario</span>
+                        <button class="logout-btn" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="preview">Vista Previa</div>
+                <div class="tab user-only" data-tab="mycards">Mis Gift Cards</div>
+                <div class="tab admin-only" data-tab="generate">Generar Gift Cards</div>
+                <div class="tab admin-only" data-tab="allcards">Todas las Gift Cards</div>
+                <div class="tab admin-only" data-tab="settings">Configuración</div>
+            </div>
+            
+            <!-- Vista Previa -->
+            <div id="preview" class="tab-content active">
+                <h2>Vista Previa de Gift Card</h2>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Previsualización de Gift Card</div>
+                        <div>
+                            <button id="share-card" class="action-btn btn-secondary">
+                                <i class="fas fa-share-alt"></i> Compartir
+                            </button>
+                            <button id="print-card" class="action-btn">
+                                <i class="fas fa-print"></i> Imprimir
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-container">
+                        <div class="gift-card-preview" id="gift-card-preview">
+                            <div class="gift-card-design" id="gift-card-design"></div>
+                            <div class="gift-card-content">
+                                <div class="gift-card-header" id="gift-card-header">
+                                    <h3>Gift Card Digital</h3>
+                                    <p>Regalo Perfecto para Cualquier Ocasión</p>
+                                </div>
+                                
+                                <div class="gift-card-code" id="preview-code">A1B2-C3D4-E5F6</div>
+                                
+                                <div id="preview-qrcode"></div>
+                                
+                                <div class="gift-card-details">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Valor</div>
+                                        <div class="detail-value">$<span id="preview-value">50</span></div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Nivel</div>
+                                        <div class="detail-value">
+                                            <span id="preview-level" class="badge badge-gold">Oro</span>
+                                        </div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Expiración</div>
+                                        <div class="detail-value" id="preview-expiry">31/12/2023</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Estado</div>
+                                        <div class="detail-value status-active" id="preview-status">Activa</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-actions">
+                                    <button id="send-email" class="action-btn btn-secondary">
+                                        <i class="fas fa-envelope"></i> Enviar por Email
+                                    </button>
+                                    <button id="download-card" class="action-btn">
+                                        <i class="fas fa-download"></i> Descargar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title">Buscar Gift Card</div>
+                                </div>
+                                
+                                <div class="search-box">
+                                    <input type="text" id="search-card-code" placeholder="Ingresa el código de la gift card">
+                                    <button id="search-card-btn" class="btn-secondary">
+                                        <i class="fas fa-search"></i> Buscar
+                                    </button>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="card-design">Diseño de Gift Card</label>
+                                    <div class="design-options">
+                                        <div class="design-option active" data-design="default">
+                                            <div class="design-preview" style="background: linear-gradient(135deg, #3498db, #2c3e50);"></div>
+                                            <span>Predeterminado</span>
+                                        </div>
+                                        <div class="design-option" data-design="elegant">
+                                            <div class="design-preview" style="background: linear-gradient(135deg, #8B7355, #6B5B3D);"></div>
+                                            <span>Elegante</span>
+                                        </div>
+                                        <div class="design-option" data-design="festive">
+                                            <div class="design-preview" style="background: linear-gradient(135deg, #e74c3c, #c0392b);"></div>
+                                            <span>Festivo</span>
+                                        </div>
+                                        <div class="design-option" data-design="nature">
+                                            <div class="design-preview" style="background: linear-gradient(135deg, #27ae60, #2ecc71);"></div>
+                                            <span>Natural</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="card-message">Mensaje Personalizado (Opcional)</label>
+                                    <textarea id="card-message" rows="3" placeholder="Agrega un mensaje personalizado para el destinatario"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="card admin-only">
+                                <div class="card-header">
+                                    <div class="card-title">Gift Cards Recientes</div>
+                                </div>
+                                
+                                <div class="gift-card-list" id="recent-cards">
+                                    <!-- Las gift cards recientes se cargarán aquí -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mis Gift Cards (Solo para usuarios) -->
+            <div id="mycards" class="tab-content user-only">
+                <h2>Mis Gift Cards</h2>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Mis Gift Cards Asignadas</div>
+                        <div>
+                            <input type="text" id="filter-my-cards" placeholder="Filtrar mis gift cards...">
+                        </div>
+                    </div>
+                    
+                    <div class="gift-card-list" id="my-cards-list">
+                        <!-- Las gift cards del usuario se cargarán aquí -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Generar Gift Cards (Solo para administradores) -->
+            <div id="generate" class="tab-content admin-only">
+                <h2>Generar Nueva Gift Card</h2>
+                <div class="card">
+                    <form id="giftcard-form">
+                        <div class="form-group">
+                            <label for="card-value">Valor de la Gift Card</label>
+                            <input type="number" id="card-value" min="1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="card-level">Nivel</label>
+                            <select id="card-level" required>
+                                <option value="bronze">Bronce</option>
+                                <option value="silver">Plata</option>
+                                <option value="gold">Oro</option>
+                                <option value="platinum">Platino</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="expiry-date">Fecha de Expiración</label>
+                            <input type="date" id="expiry-date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="recipient-email">Email del Destinatario (Opcional)</label>
+                            <input type="email" id="recipient-email" placeholder="ejemplo@correo.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="card-design-form">Diseño de la Gift Card</label>
+                            <select id="card-design-form">
+                                <option value="default">Predeterminado</option>
+                                <option value="elegant">Elegante</option>
+                                <option value="festive">Festivo</option>
+                                <option value="nature">Natural</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn-secondary">Generar Gift Card</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Todas las Gift Cards (Solo para administradores) -->
+            <div id="allcards" class="tab-content admin-only">
+                <h2>Todas las Gift Cards</h2>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Todas las Gift Cards del Sistema</div>
+                        <div>
+                            <input type="text" id="filter-all-cards" placeholder="Filtrar gift cards...">
+                        </div>
+                    </div>
+                    
+                    <div class="gift-card-list" id="all-cards-list">
+                        <!-- Todas las gift cards se cargarán aquí -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Configuración (Solo para administradores) -->
+            <div id="settings" class="tab-content admin-only">
+                <h2>Configuración del Sistema</h2>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Configuración de Niveles</div>
+                    </div>
+                    <form id="levels-config">
+                        <div class="form-group">
+                            <label for="bronze-discount">Descuento Bronce (%)</label>
+                            <input type="number" id="bronze-discount" min="0" max="100" value="5">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="silver-discount">Descuento Plata (%)</label>
+                            <input type="number" id="silver-discount" min="0" max="100" value="10">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="gold-discount">Descuento Oro (%)</label>
+                            <input type="number" id="gold-discount" min="0" max="100" value="15">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="platinum-discount">Descuento Platino (%)</label>
+                            <input type="number" id="platinum-discount" min="0" max="100" value="20">
+                        </div>
+                        
+                        <button type="submit" class="btn-secondary">Guardar Configuración</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de ejemplo para la demostración
+        let giftCards = JSON.parse(localStorage.getItem('giftCards')) || [];
+        let users = JSON.parse(localStorage.getItem('users')) || [
+            { username: 'user', password: '1234', role: 'user', name: 'Usuario Regular' },
+            { username: 'admin', password: '1234', role: 'admin', name: 'Administrador' }
+        ];
+        let settings = JSON.parse(localStorage.getItem('settings')) || {
+            bronzeDiscount: 5,
+            silverDiscount: 10,
+            goldDiscount: 15,
+            platinumDiscount: 20
+        };
+        
+        let currentUser = null;
+
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeLogin();
+            checkLoginStatus();
+        });
+
+        function initializeLogin() {
+            // Opciones de login
+            document.querySelectorAll('.login-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.login-option').forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Formulario de login
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                loginUser();
+            });
+        }
+
+        function loginUser() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.querySelector('.login-option.active').getAttribute('data-role');
+            
+            // Verificar credenciales
+            const user = users.find(u => u.username === username && u.password === password && u.role === role);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                showApp();
+            } else {
+                alert('Credenciales incorrectas. Por favor verifica tu usuario y contraseña.');
+            }
+        }
+
+        function checkLoginStatus() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showApp();
+            }
+        }
+
+        function showApp() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+            
+            // Actualizar información del usuario
+            document.getElementById('user-name').textContent = currentUser.name;
+            document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+            
+            // Configurar interfaz según el rol
+            if (currentUser.role === 'admin') {
+                document.body.classList.add('user-role-admin');
+            } else {
+                document.body.classList.add('user-role-user');
+            }
+            
+            // Inicializar la aplicación
+            initializeApp();
+            loadRecentCards();
+            loadAllCards();
+            loadMyCards();
+            setupEventListeners();
+            
+            // Mostrar una gift card de ejemplo
+            if (giftCards.length === 0) {
+                showExampleCard();
+            } else {
+                showCardPreview(giftCards[giftCards.length - 1]);
+            }
+        }
+
+        function initializeApp() {
+            // Cargar configuración
+            document.getElementById('bronze-discount').value = settings.bronzeDiscount;
+            document.getElementById('silver-discount').value = settings.silverDiscount;
+            document.getElementById('gold-discount').value = settings.goldDiscount;
+            document.getElementById('platinum-discount').value = settings.platinumDiscount;
+            
+            // Establecer fecha mínima para expiración
+            const today = new Date();
+            const minDate = today.toISOString().split('T')[0];
+            document.getElementById('expiry-date').min = minDate;
+            
+            // Establecer fecha predeterminada de expiración (30 días desde hoy)
+            const defaultExpiryDate = new Date();
+            defaultExpiryDate.setDate(today.getDate() + 30);
+            document.getElementById('expiry-date').value = defaultExpiryDate.toISOString().split('T')[0];
+            
+            // Generar diseño inicial
+            generateCardDesign('default');
+        }
+
+        function setupEventListeners() {
+            // Navegación por pestañas
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Remover clase active de todas las pestañas y contenidos
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Agregar clase active a la pestaña y contenido seleccionados
+                    this.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // Recargar datos si es necesario
+                    if (tabId === 'preview') {
+                        loadRecentCards();
+                    } else if (tabId === 'allcards') {
+                        loadAllCards();
+                    } else if (tabId === 'mycards') {
+                        loadMyCards();
+                    }
+                });
+            });
+            
+            // Formulario para generar gift cards
+            document.getElementById('giftcard-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                generateGiftCard();
+            });
+            
+            // Búsqueda de gift card por código
+            document.getElementById('search-card-btn').addEventListener('click', function() {
+                searchCardByCode();
+            });
+            
+            document.getElementById('search-card-code').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchCardByCode();
+                }
+            });
+            
+            // Cambio de diseño
+            document.querySelectorAll('.design-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.design-option').forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    const design = this.getAttribute('data-design');
+                    generateCardDesign(design);
+                });
+            });
+            
+            // Botones de acción
+            document.getElementById('print-card').addEventListener('click', function() {
+                printCard();
+            });
+            
+            document.getElementById('share-card').addEventListener('click', function() {
+                shareCard();
+            });
+            
+            document.getElementById('send-email').addEventListener('click', function() {
+                sendCardByEmail();
+            });
+            
+            document.getElementById('download-card').addEventListener('click', function() {
+                downloadCard();
+            });
+            
+            // Filtrado de gift cards
+            document.getElementById('filter-all-cards').addEventListener('input', function() {
+                filterAllCards(this.value);
+            });
+            
+            document.getElementById('filter-my-cards').addEventListener('input', function() {
+                filterMyCards(this.value);
+            });
+            
+            // Configuración de niveles
+            document.getElementById('levels-config').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveLevelsConfig();
+            });
+            
+            // Cerrar sesión
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                logout();
+            });
+        }
+
+        function generateGiftCard() {
+            const value = parseInt(document.getElementById('card-value').value);
+            const level = document.getElementById('card-level').value;
+            const expiry = document.getElementById('expiry-date').value;
+            const recipientEmail = document.getElementById('recipient-email').value;
+            const design = document.getElementById('card-design-form').value;
+            
+            const code = generateUniqueCode();
+            const giftCard = {
+                id: generateId(),
+                code: code,
+                value: value,
+                level: level,
+                expiry: expiry,
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                usedAt: null,
+                remaining: value,
+                recipientEmail: recipientEmail,
+                design: design,
+                createdBy: currentUser.username
+            };
+            
+            giftCards.push(giftCard);
+            localStorage.setItem('giftCards', JSON.stringify(giftCards));
+            
+            // Mostrar vista previa
+            showCardPreview(giftCard);
+            
+            // Cambiar a la pestaña de vista previa
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('[data-tab="preview"]').classList.add('active');
+            document.getElementById('preview').classList.add('active');
+            
+            // Reiniciar formulario
+            document.getElementById('giftcard-form').reset();
+            initializeApp();
+            
+            // Recargar listas
+            loadRecentCards();
+            loadAllCards();
+            
+            alert(`Gift Card generada exitosamente: ${code}`);
+        }
+
+        function generateUniqueCode() {
+            let code;
+            let isUnique = false;
+            
+            while (!isUnique) {
+                code = '';
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                
+                for (let i = 0; i < 12; i++) {
+                    if (i > 0 && i % 4 === 0) {
+                        code += '-';
+                    }
+                    code += characters.charAt(Math.floor(Math.random() * characters.length));
+                }
+                
+                // Verificar si el código ya existe
+                isUnique = !giftCards.some(card => card.code === code);
+            }
+            
+            return code;
+        }
+
+        function generateId() {
+            return '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function showCardPreview(giftCard) {
+            document.getElementById('preview-code').textContent = giftCard.code;
+            document.getElementById('preview-value').textContent = giftCard.value;
+            document.getElementById('preview-level').textContent = getLevelName(giftCard.level);
+            document.getElementById('preview-level').className = `badge badge-${giftCard.level}`;
+            document.getElementById('preview-expiry').textContent = formatDate(giftCard.expiry);
+            document.getElementById('preview-status').textContent = getStatusName(giftCard.status);
+            document.getElementById('preview-status').className = `status-${giftCard.status}`;
+            
+            // Generar QR - CORREGIDO CON LA NUEVA LIBRERÍA
+            const qrContainer = document.getElementById('preview-qrcode');
+            qrContainer.innerHTML = '';
+            
+            try {
+                // Usar la librería qrcode-generator
+                const qr = qrcode(0, 'M');
+                qr.addData(giftCard.code);
+                qr.make();
+                
+                // Crear elemento img para el QR
+                const qrImg = document.createElement('img');
+                qrImg.src = qr.createDataURL(4); // 4 es el tamaño de celda
+                qrImg.alt = `QR Code para ${giftCard.code}`;
+                qrImg.style.width = '150px';
+                qrImg.style.height = '150px';
+                
+                qrContainer.appendChild(qrImg);
+            } catch (error) {
+                console.error('Error generando QR:', error);
+                // Fallback: mostrar código de texto si el QR falla
+                qrContainer.innerHTML = `<div style="color: black; font-weight: bold; padding: 10px; background: white; border-radius: 5px;">${giftCard.code}</div>`;
+            }
+            
+            // Aplicar diseño
+            generateCardDesign(giftCard.design || 'default');
+        }
+
+        function showExampleCard() {
+            const exampleCard = {
+                code: 'A1B2-C3D4-E5F6',
+                value: 50,
+                level: 'gold',
+                expiry: '2023-12-31',
+                status: 'active',
+                design: 'default'
+            };
+            
+            showCardPreview(exampleCard);
+        }
+
+        function generateCardDesign(design) {
+            const designContainer = document.getElementById('gift-card-design');
+            const cardPreview = document.getElementById('gift-card-preview');
+            const header = document.getElementById('gift-card-header');
+            
+            // Limpiar diseño anterior
+            designContainer.innerHTML = '';
+            
+            // Configurar colores según el diseño
+            let gradient, decorations;
+            
+            switch(design) {
+                case 'elegant':
+                    gradient = 'linear-gradient(135deg, #8B7355, #6B5B3D)';
+                    decorations = 'elegant';
+                    break;
+                case 'festive':
+                    gradient = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+                    decorations = 'festive';
+                    break;
+                case 'nature':
+                    gradient = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+                    decorations = 'nature';
+                    break;
+                default: // default
+                    gradient = 'linear-gradient(135deg, #3498db, #2c3e50)';
+                    decorations = 'default';
+            }
+            
+            // Aplicar gradiente de fondo
+            cardPreview.style.background = gradient;
+            
+            // Aplicar gradiente al header
+            header.style.background = 'rgba(0, 0, 0, 0.2)';
+            
+            // Agregar decoraciones según el diseño
+            addDecorations(designContainer, decorations);
+        }
+
+        function addDecorations(container, style) {
+            // Crear elemento SVG para las decoraciones
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.style.position = 'absolute';
+            svg.style.top = '0';
+            svg.style.left = '0';
+            svg.style.pointerEvents = 'none';
+            
+            // Agregar patrones según el estilo
+            switch(style) {
+                case 'elegant':
+                    // Patrón de líneas elegantes
+                    for (let i = 0; i < 20; i++) {
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', Math.random() * 100 + '%');
+                        line.setAttribute('y1', Math.random() * 100 + '%');
+                        line.setAttribute('x2', Math.random() * 100 + '%');
+                        line.setAttribute('y2', Math.random() * 100 + '%');
+                        line.setAttribute('stroke', 'rgba(255, 255, 255, 0.1)');
+                        line.setAttribute('stroke-width', '1');
+                        svg.appendChild(line);
+                    }
+                    break;
+                case 'festive':
+                    // Patrón de círculos festivos
+                    for (let i = 0; i < 30; i++) {
+                        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        circle.setAttribute('cx', Math.random() * 100 + '%');
+                        circle.setAttribute('cy', Math.random() * 100 + '%');
+                        circle.setAttribute('r', Math.random() * 20 + 5);
+                        circle.setAttribute('fill', 'rgba(255, 255, 255, 0.1)');
+                        svg.appendChild(circle);
+                    }
+                    break;
+                case 'nature':
+                    // Patrón de hojas
+                    for (let i = 0; i < 15; i++) {
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        // Forma simplificada de hoja
+                        path.setAttribute('d', `M${Math.random() * 100} ${Math.random() * 100} 
+                            C${Math.random() * 100} ${Math.random() * 100} 
+                            ${Math.random() * 100} ${Math.random() * 100} 
+                            ${Math.random() * 100} ${Math.random() * 100} 
+                            Z`);
+                        path.setAttribute('fill', 'rgba(255, 255, 255, 0.1)');
+                        svg.appendChild(path);
+                    }
+                    break;
+                default: // default
+                    // Patrón de cuadrados
+                    for (let i = 0; i < 25; i++) {
+                        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        rect.setAttribute('x', Math.random() * 100 + '%');
+                        rect.setAttribute('y', Math.random() * 100 + '%');
+                        rect.setAttribute('width', Math.random() * 30 + 10);
+                        rect.setAttribute('height', Math.random() * 30 + 10);
+                        rect.setAttribute('fill', 'rgba(255, 255, 255, 0.05)');
+                        rect.setAttribute('rx', '5');
+                        svg.appendChild(rect);
+                    }
+            }
+            
+            container.appendChild(svg);
+        }
+
+        function searchCardByCode() {
+            const code = document.getElementById('search-card-code').value.trim().toUpperCase();
+            
+            if (!code) {
+                alert('Por favor ingresa un código de gift card');
+                return;
+            }
+            
+            const card = giftCards.find(c => c.code === code);
+            
+            if (card) {
+                showCardPreview(card);
+            } else {
+                alert('No se encontró ninguna gift card con ese código');
+            }
+        }
+
+        function loadRecentCards() {
+            const container = document.getElementById('recent-cards');
+            container.innerHTML = '';
+            
+            // Obtener las últimas 3 gift cards
+            const recentCards = giftCards.slice(-3).reverse();
+            
+            if (recentCards.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-gift"></i>
+                        <p>No hay gift cards recientes</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            recentCards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'gift-card-item';
+                cardElement.addEventListener('click', () => showCardPreview(card));
+                
+                cardElement.innerHTML = `
+                    <div class="gift-card-item-header">
+                        <div class="gift-card-item-code">${card.code}</div>
+                        <span class="badge badge-${card.level}">${getLevelName(card.level)}</span>
+                    </div>
+                    <div class="gift-card-item-value">$${card.value}</div>
+                    <div class="gift-card-item-details">
+                        <div>Expira: ${formatDate(card.expiry)}</div>
+                        <div>Estado: <span class="status-${card.status}">${getStatusName(card.status)}</span></div>
+                    </div>
+                `;
+                
+                container.appendChild(cardElement);
+            });
+        }
+
+        function loadAllCards() {
+            const container = document.getElementById('all-cards-list');
+            container.innerHTML = '';
+            
+            if (giftCards.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-gift"></i>
+                        <p>No hay gift cards generadas</p>
+                        <p>Ve a la pestaña "Generar Gift Cards" para crear una</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            giftCards.reverse().forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'gift-card-item';
+                cardElement.addEventListener('click', () => showCardPreview(card));
+                
+                cardElement.innerHTML = `
+                    <div class="gift-card-item-header">
+                        <div class="gift-card-item-code">${card.code}</div>
+                        <span class="badge badge-${card.level}">${getLevelName(card.level)}</span>
+                    </div>
+                    <div class="gift-card-item-value">$${card.value}</div>
+                    <div class="gift-card-item-details">
+                        <div>Expira: ${formatDate(card.expiry)}</div>
+                        <div>Estado: <span class="status-${card.status}">${getStatusName(card.status)}</span></div>
+                        <div>Creado: ${formatDate(card.createdAt)}</div>
+                    </div>
+                `;
+                
+                container.appendChild(cardElement);
+            });
+        }
+
+        function loadMyCards() {
+            const container = document.getElementById('my-cards-list');
+            container.innerHTML = '';
+            
+            // Filtrar gift cards asignadas al usuario actual
+            const myCards = giftCards.filter(card => 
+                card.recipientEmail && card.recipientEmail.includes(currentUser.username) || 
+                card.createdBy === currentUser.username
+            );
+            
+            if (myCards.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-gift"></i>
+                        <p>No tienes gift cards asignadas</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            myCards.reverse().forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'gift-card-item';
+                cardElement.addEventListener('click', () => showCardPreview(card));
+                
+                cardElement.innerHTML = `
+                    <div class="gift-card-item-header">
+                        <div class="gift-card-item-code">${card.code}</div>
+                        <span class="badge badge-${card.level}">${getLevelName(card.level)}</span>
+                    </div>
+                    <div class="gift-card-item-value">$${card.value}</div>
+                    <div class="gift-card-item-details">
+                        <div>Expira: ${formatDate(card.expiry)}</div>
+                        <div>Estado: <span class="status-${card.status}">${getStatusName(card.status)}</span></div>
+                    </div>
+                `;
+                
+                container.appendChild(cardElement);
+            });
+        }
+
+        function filterAllCards(searchTerm) {
+            const cards = document.querySelectorAll('#all-cards-list .gift-card-item');
+            
+            cards.forEach(card => {
+                const code = card.querySelector('.gift-card-item-code').textContent;
+                const level = card.querySelector('.badge').textContent;
+                
+                if (code.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    level.toLowerCase().includes(searchTerm.toLowerCase())) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function filterMyCards(searchTerm) {
+            const cards = document.querySelectorAll('#my-cards-list .gift-card-item');
+            
+            cards.forEach(card => {
+                const code = card.querySelector('.gift-card-item-code').textContent;
+                const level = card.querySelector('.badge').textContent;
+                
+                if (code.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    level.toLowerCase().includes(searchTerm.toLowerCase())) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function printCard() {
+            alert('Funcionalidad de impresión: Se abrirá el diálogo de impresión');
+            // En una implementación real, aquí se prepararía la gift card para impresión
+            window.print();
+        }
+
+        function shareCard() {
+            const code = document.getElementById('preview-code').textContent;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Gift Card Digital',
+                    text: `Te he enviado una gift card con código: ${code}`,
+                    url: window.location.href
+                })
+                .catch(error => console.log('Error sharing:', error));
+            } else {
+                // Fallback para navegadores que no soportan la Web Share API
+                alert(`Comparte esta gift card con código: ${code}`);
+            }
+        }
+
+        function sendCardByEmail() {
+            const code = document.getElementById('preview-code').textContent;
+            const value = document.getElementById('preview-value').textContent;
+            const level = document.getElementById('preview-level').textContent;
+            
+            const email = prompt('Ingresa el email del destinatario:');
+            if (email) {
+                alert(`Gift Card enviada a ${email}\nCódigo: ${code}\nValor: $${value}\nNivel: ${level}`);
+            }
+        }
+
+        function downloadCard() {
+            alert('Descargando gift card como imagen...');
+            // En una implementación real, aquí se convertiría la gift card a imagen para descarga
+        }
+
+        function saveLevelsConfig() {
+            settings.bronzeDiscount = parseInt(document.getElementById('bronze-discount').value);
+            settings.silverDiscount = parseInt(document.getElementById('silver-discount').value);
+            settings.goldDiscount = parseInt(document.getElementById('gold-discount').value);
+            settings.platinumDiscount = parseInt(document.getElementById('platinum-discount').value);
+            
+            localStorage.setItem('settings', JSON.stringify(settings));
+            alert('Configuración guardada correctamente');
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('login-container').style.display = 'flex';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        // Funciones auxiliares
+        function getLevelName(level) {
+            switch(level) {
+                case 'bronze': return 'Bronce';
+                case 'silver': return 'Plata';
+                case 'gold': return 'Oro';
+                case 'platinum': return 'Platino';
+                default: return 'Desconocido';
+            }
+        }
+
+        function getStatusName(status) {
+            switch(status) {
+                case 'active': return 'Activa';
+                case 'used': return 'Usada';
+                case 'expired': return 'Expirada';
+                default: return 'Desconocido';
+            }
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-ES');
+        }
+    </script>
+</body>
+</html>
